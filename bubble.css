@@ -13,6 +13,23 @@ body
 	position:fixed;
 	left:0px;
 	top:0px;
-	border:1px solid black;
+	border:1px solid Black;
 	background-color:LightCyan;
+}
+
+#musicToggle
+{
+	position:relative;
+	float:top;
+	top:500px;
+	width:50px;
+	height:50px;
+	border:1px solid Gray;
+	border-radius:3px;
+	background-color:LightGray;
+	text-align:center;
+}
+#musicToggle p
+{
+	vertical-align:middle;
 }

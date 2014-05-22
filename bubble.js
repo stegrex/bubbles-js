@@ -1,8 +1,9 @@
 // Global Settings
 
 var gameMode = 1;
+var bubbleRadius = 5; // Bubble radius. Default 5.
 var maxBubbles = 25; // Maximum number of bubbles allowed in the game.
-var bubbleFrequency = 250; // Milliseconds in between firings. Default 250.
+var bubbleFrequency = 150; // Milliseconds in between firings. Default 250.
 var canvasX = 320;
 var canvasY = 480;
 
@@ -12,6 +13,8 @@ var game; // The game object. Handles game state.
 var canvas; // The canvas object. Handles rendering.
 var input; // The game's event object. Handles user input actions.
 var t; // Global timer (uses 1 ms increments). Handles rendering and state.
+
+var song; // Object for the song.
 
 var debugOut;
 
@@ -27,12 +30,33 @@ function main () // Initializes the game.
 	canvas.create();
 	input = new Input();
 	input.create();
+	song = new Audio("6-1-12.ogg");
+	song.loop = true;
+	document.getElementById("musicToggle").addEventListener("click", musicToggle, false);
 	t = setTimeout(redraw, 1); // Start the game's timer loop.
 }
 function redraw () // Redraws the canvas.
 {
 	canvas.redraw(); // Render the game graphics.
 	t = setTimeout(redraw, 1); // Loops again.
+}
+
+function musicToggle ()
+{
+	var musicToggle = document.getElementById("musicToggle");
+	if (parseInt(musicToggle.getAttribute("playing")) === 0)
+	{
+		song.play();
+		musicToggle.setAttribute("playing", 1);
+		musicToggle.innerHTML = "<p>Music<br />On</p>";
+	}
+	else if (parseInt(musicToggle.getAttribute("playing")) === 1)
+	{
+		song.pause();
+		song.currentTime = 0;
+		musicToggle.setAttribute("playing", 0);
+		musicToggle.innerHTML = "<p>Music<br />Off</p>";
+	}
 }
 
 // Main game component states
@@ -205,7 +229,7 @@ Bubble.prototype.combine = function (bubbleObject) // Bubble class's combine met
 	{
 		var bubbleObjectWeight = bubbleObject.weight;
 		bubbleObject.weight += this.weight;
-		bubbleObject.y += Math.sqrt(25*this.weight);
+		bubbleObject.y += Math.sqrt(Math.pow(bubbleRadius, 2)*this.weight);
 		bubbleObject.x = (this.x*this.weight+bubbleObject.x*bubbleObjectWeight)/(this.weight+bubbleObjectWeight);
 		this.destruct();
 		bubbleObject.redraw();
@@ -213,7 +237,7 @@ Bubble.prototype.combine = function (bubbleObject) // Bubble class's combine met
 }
 Bubble.prototype.calculate = function () // Bubble class's calculation method for next position.
 {
-	this.r = Math.sqrt(25*this.weight);
+	this.r = Math.sqrt(Math.pow(bubbleRadius, 2)*this.weight);
 	var returnVal = false;
 	for (var x in game.blocks)
 	{
