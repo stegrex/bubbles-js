@@ -1,10 +1,12 @@
 // Global Settings
 
 var gameMode = 1;
+var autoShoot = 0; // Shoots a bunch of bubbles randomly if set to 1. Default 0.
+var bubbleSpeed = 1.5; // Pixel per ms bubbles float upwards. Default 1.5.
 var bubbleRadius = 5; // Bubble radius. Default 5.
-var maxBubbles = 25; // Maximum number of bubbles allowed in the game.
-var maxBubbleWeight = 15; // Maximum weight of the bubble before it asplodes.
-var bubbleFrequency = 150; // Milliseconds in between firings. Default 250.
+// var maxBubbles = 25; // Maximum number of bubbles allowed in the game.
+var maxBubbleWeight = 15; // Maximum weight of the bubble before it asplodes. Default 15.
+var bubbleFrequency = 150; // Milliseconds in between firings. Default 150.
 var canvasX = 320;
 var canvasY = 480;
 var msPerRender = 4; // Milliseconds per animation rendering.
@@ -70,7 +72,7 @@ Game.prototype.create = function () // Load different components for the level.
 {
 	this.blocks = new Array();
 	this.bubbles = new Array();
-	this.asplodeBubble = null;
+	this.asplodeBubbles = new Array();
 	
 	this.load();
 	
@@ -129,15 +131,17 @@ Canvas.prototype.redraw = function () // Canvas class's redraw method.
 		// Redraw level-based game components.
 		for (var x in game.bubbles) // Redraw all user generated bubbles.
 		{
-			
 			if (game.bubbles[x])
 			{
 				game.bubbles[x].redraw();
 			}
 		}
-		if (game.asplodeBubble)
+		for (var x in game.asplodeBubbles)
 		{
-			game.asplodeBubble.asplode();
+			if (game.asplodeBubbles[x])
+			{
+				game.asplodeBubbles[x].asplode();
+			}
 		}
 		this.calcCount = 0;
 	}
@@ -193,6 +197,10 @@ Input.prototype.hold = function () // Recursively firing for a stream of bubbles
 
 function createBubble (x, y) // Bubble creation by clicking on canvas.
 {
+	if (autoShoot === 1)
+	{
+		var ax = setTimeout(createBubble, bubbleFrequency/2, Math.random()*canvasX, Math.random()*canvasY);
+	}
 	var bubble = new Bubble();
 	bubble.create(x, y);
 	bubble.index = game.bubbles.length;
@@ -245,19 +253,12 @@ Bubble.prototype.calculate = function () // Bubble class's calculation method fo
 	}
 	if (returnVal === false)
 	{
-		this.y = this.y-1.5;
+		this.y = this.y-bubbleSpeed;
 		this.moving = true;
 	}
-	if (this.y <= 50)
+	if (this.y <= (10+Math.random()*30) || (maxBubbleWeight >= 1 && this.weight >= maxBubbleWeight))
 	{
-		this.destruct();
-	}
-	if (this.weight >= maxBubbleWeight)
-	{
-		this.r *= 2;
-		this.y += this.r/4;
-		game.asplodeBubble = this;
-		this.destruct();
+		this.asplodePrepare();
 	}
 }
 Bubble.prototype.combine = function (bubbleObject) // Bubble class's combine method for the case of two bubbles touching.
@@ -284,6 +285,15 @@ Bubble.prototype.redraw = function () // Bubble class's redraw method.
 	canvas.ctx.textBaseline = "middle";
 	canvas.ctx.fillText(this.weight, this.x, this.y);
 }
+Bubble.prototype.asplodePrepare = function ()
+{
+	this.r *= 2;
+	this.y += this.r/4;
+	var index = game.asplodeBubbles.length;
+	this.destruct();
+	game.asplodeBubbles[index] = this;
+	game.asplodeBubbles[index].index = index;
+}
 Bubble.prototype.asplode = function ()
 {
 	if (this.r >= 3)
@@ -302,7 +312,14 @@ Bubble.prototype.asplode = function ()
 }
 Bubble.prototype.destruct = function () // Bubble class's destruct method.
 {
-	game.bubbles[this.index] = null;
+	if (game.bubbles[this.index])
+	{
+		game.bubbles[this.index] = null;
+	}
+	if (game.asplodeBubbles[this.index])
+	{
+		game.asplodeBubbles[this.index] = null;
+	}
 }
 
 // Block Class
