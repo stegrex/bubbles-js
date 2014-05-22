@@ -91,9 +91,12 @@ Game.prototype.create = function () // Load different components for the level.
 }
 Game.prototype.load = function () // Load the components of a level from a file.
 {
-	song = new Audio("6-1-12.ogg");
-	song.loop = true;
-	document.getElementById("musicToggle").addEventListener("click", musicToggle, false);
+	if (navigator.appname != "Microsoft Internet Explorer")
+	{
+		song = new Audio("6-1-12.ogg");
+		song.loop = true;
+		document.getElementById("musicToggle").addEventListener("click", musicToggle, false);
+	}
 	this.blocks[0] = new Block();
 	this.blocks[0].create(200, 200, 100, 10);
 	this.blocks[1] = new Block();
@@ -314,7 +317,6 @@ Bubble.prototype.asplodePrepare = function () // Prepare the bubble to be asplod
 	this.index = index;
 	this.asploding = true;
 	game.asplodeBubbles[index] = this;
-	//game.asplodeBubbles[index].index = index;
 }
 Bubble.prototype.asplode = function () // Render the next frame of the asplosion.
 {
@@ -330,6 +332,10 @@ Bubble.prototype.asplode = function () // Render the next frame of the asplosion
 		canvas.ctx.beginPath();
 		canvas.ctx.strokeStyle = "PowderBlue";
 		canvas.ctx.arc(this.x, this.y, (this.r-3 >= 0 ? this.r-3 : 0), 1.5*Math.PI-this.d, 1.5*Math.PI+this.d, true);
+		canvas.ctx.stroke();
+		canvas.ctx.beginPath();
+		canvas.ctx.strokeStyle = "White";
+		canvas.ctx.arc(this.x, this.y, this.r, 1.5*Math.PI+this.d, 1.5*Math.PI-this.d, true);
 		canvas.ctx.stroke();
 	}
 	else // Destruct the bubble once it is too small.
