@@ -8,6 +8,7 @@ var bubbleRadius = 5; // Bubble radius. Default 5.
 // var maxBubbles = 25; // Maximum number of bubbles allowed in the game.
 var maxBubbleWeight = 15; // Maximum weight of the bubble before it asplodes. Default 15.
 var bubbleFrequency = 150; // Milliseconds in between firings. Default 150.
+var combineBubbleMode = 0;
 var canvasX = 320;
 var canvasY = 480;
 var msPerRender = 4; // Milliseconds per animation rendering.
@@ -18,7 +19,7 @@ var game; // The game object. Handles game state.
 var canvas; // The canvas object. Handles rendering.
 var input; // The game's event object. Handles user input actions.
 var t; // Global timer (uses 1 ms increments). Handles rendering and state.
-var calcCount; // Global timer.
+//var calcCount; // Global timer.
 
 var song; // Object for the song.
 
@@ -30,6 +31,7 @@ function main () // Initializes the game.
 {
 	debugOut = document.getElementById("test"); // Debug
 	// Initialize global variables.
+	flushGame();
 	game = new Game();
 	game.create();
 	canvas = new Canvas();
@@ -42,6 +44,15 @@ function redraw () // Redraws the canvas.
 {
 	canvas.redraw(); // Render the game graphics.
 	t = setTimeout(redraw, 1); // Loops again.
+}
+function flushGame ()
+{
+	var game = null;
+	var canvas = null;
+	var input = null;
+	var t = null;
+	var song = null;
+	var debugOut = null;
 }
 
 function musicToggle ()
@@ -200,7 +211,7 @@ function createBubble (x, y) // Bubble creation by clicking on canvas.
 {
 	if (autoShoot === 1)
 	{
-		var ax = setTimeout(createBubble, bubbleFrequency/2, Math.random()*canvasX, Math.random()*canvasY);
+		var ax = setTimeout(createBubble, bubbleFrequency/2, 41+Math.random()*(canvasX-41), Math.random()*canvasY);
 	}
 	var bubble = new Bubble();
 	bubble.create(x, y);
@@ -275,7 +286,7 @@ Bubble.prototype.combine = function (bubbleObject) // Bubble class's combine met
 		var bubbleObjectWeight = bubbleObject.weight;
 		bubbleObject.weight += this.weight;
 		bubbleObject.y += Math.sqrt(Math.pow(bubbleRadius, 2)*this.weight);
-		bubbleObject.x = (this.x*this.weight+bubbleObject.x*bubbleObjectWeight)/(this.weight+bubbleObjectWeight);
+		bubbleObject.x = (combineBubbleMode === 0 ? (this.x*this.weight+bubbleObject.x*bubbleObjectWeight)/(this.weight+bubbleObjectWeight) : this.x);
 		this.destruct();
 		bubbleObject.redraw();
 	}
@@ -309,16 +320,16 @@ Bubble.prototype.asplode = function () // Render the next frame of the asplosion
 {
 	if (this.r >= this.rStart/15)
 	{
-		this.d -= 0.1;
+		this.d += 0.1;
 		this.r -= this.rStart/30;
 		this.y -= this.rStart/30;
 		canvas.ctx.beginPath();
 		canvas.ctx.strokeStyle = "LightSkyBlue";
-		canvas.ctx.arc(this.x+Math.sqrt(this.r)-2*Math.random()*Math.sqrt(this.r), this.y, this.r, 1.5*Math.PI+this.d, 1.5*Math.PI-this.d, true);
+		canvas.ctx.arc(this.x+Math.sqrt(this.r)-2*Math.random()*Math.sqrt(this.r), this.y, this.r, 1.5*Math.PI-this.d-Math.random()*1, 1.5*Math.PI+this.d+Math.random()*1, true);
 		canvas.ctx.stroke();
 		canvas.ctx.beginPath();
 		canvas.ctx.strokeStyle = "PowderBlue";
-		canvas.ctx.arc(this.x, this.y, (this.r-3 >= 0 ? this.r-3 : 0), 1.5*Math.PI+this.d, 1.5*Math.PI-this.d, true);
+		canvas.ctx.arc(this.x, this.y, (this.r-3 >= 0 ? this.r-3 : 0), 1.5*Math.PI-this.d, 1.5*Math.PI+this.d, true);
 		canvas.ctx.stroke();
 	}
 	else // Destruct the bubble once it is too small.
