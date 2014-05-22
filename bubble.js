@@ -2,14 +2,14 @@
 
 var gameMode = 1;
 var maxBubbles = 25; // Maximum number of bubbles allowed in the game.
-var bubbleFrequency = 250; // Milliseconds in between firings.
+var bubbleFrequency = 250; // Milliseconds in between firings. Default 250.
 var canvasX = 320;
 var canvasY = 480;
 
 // Global Variables
 
-var canvas; // The canvas object. Handles rendering.
 var game; // The game object. Handles game state.
+var canvas; // The canvas object. Handles rendering.
 var input; // The game's event object. Handles user input actions.
 var t; // Global timer (uses 1 ms increments). Handles rendering and state.
 
@@ -60,6 +60,7 @@ Game.prototype.load = function () // Load the components of a level from a file.
 Game.prototype.destruct = function () // Destruct the game, restarting.
 {
 	alert("Game restarted, too many damn bubbles.");
+	clearTimeout(t);
 	this.create();
 }
 
@@ -146,18 +147,11 @@ Input.prototype.hold = function () // Recursively firing for a stream of bubbles
 function createBubble (x, y) // Bubble creation by clicking on canvas.
 {
 	var bubble = new Bubble();
-	if ((game.bubbles.length <= maxBubbles) || (gameMode === 1))
-	{
-		bubble.create(x, y);
-		bubble.index = game.bubbles.length;
-		bubble.redraw();
-		game.bubbles[bubble.index] = bubble;
-		debugOut.innerHTML = bubble.index; // Debug
-	}
-	else if (game.bubbles.length >= maxBubbles && gameMode === 0)
-	{
-		game.destruct();
-	}
+	bubble.create(x, y);
+	bubble.index = game.bubbles.length;
+	bubble.redraw();
+	game.bubbles[bubble.index] = bubble;
+	debugOut.innerHTML = bubble.index; // Debug
 }
 
 // Bubble Class
@@ -170,6 +164,7 @@ function Bubble ()
 	this.y;
 	this.r;
 	this.weight;
+	this.moving;
 }
 Bubble.prototype.create = function (x, y) // Create bubble.
 {
@@ -177,23 +172,48 @@ Bubble.prototype.create = function (x, y) // Create bubble.
 	this.y = y;
 	this.r;
 	this.weight = 1;
+	this.moving = true;
 	this.calculate();
 }
 Bubble.prototype.redraw = function () // Bubble class's redraw method.
 {
+	for (var x in game.bubbles)
+	{
+		if (game.bubbles[x] && x != this.index)
+		{
+			this.combine(game.bubbles[x]);
+		}
+	}
 	this.calculate();
 	if (this.y <= 50)
 	{
 		this.destruct();
 	}
 	canvas.ctx.beginPath();
-	canvas.ctx.strokeStyle = "Blue";
-	canvas.ctx.arc(this.x, this.y, this.r, 0, 2*Math.PI);
+	canvas.ctx.strokeStyle = "LightSeaGreen";
+	canvas.ctx.arc((this.moving ? this.x+Math.sqrt(this.r)/2-Math.random()*Math.sqrt(this.r) : this.x), this.y, this.r, 0, 2*Math.PI);
 	canvas.ctx.stroke();
+	canvas.ctx.fillStyle = "LightSeaGreen";
+	canvas.ctx.font = "10px Tahoma, Geneva, sans-serif";
+	canvas.ctx.textAlign = "center";
+	canvas.ctx.textBaseline = "middle";
+	canvas.ctx.fillText(this.weight, this.x, this.y);
+}
+Bubble.prototype.combine = function (bubbleObject) // Bubble class's combine method for the case of two bubbles touching.
+{
+	if ((this.weight <= bubbleObject.weight) && (Math.sqrt(Math.pow(this.x-bubbleObject.x, 2)+Math.pow(this.y-bubbleObject.y, 2)) <= this.r+bubbleObject.r))
+	{
+		var bubbleObjectWeight = bubbleObject.weight;
+		bubbleObject.weight += this.weight;
+		bubbleObject.y += Math.sqrt(25*this.weight);
+		bubbleObject.x = (this.x*this.weight+bubbleObject.x*bubbleObjectWeight)/(this.weight+bubbleObjectWeight);
+		this.destruct();
+		bubbleObject.redraw();
+	}
 }
 Bubble.prototype.calculate = function () // Bubble class's calculation method for next position.
 {
-	this.r = Math.floor(Math.sqrt(25)*this.weight);
+	this.r = Math.sqrt(25*this.weight);
 	var returnVal = false;
 	for (var x in game.blocks)
 	{
@@ -201,12 +221,14 @@ Bubble.prototype.calculate = function () // Bubble class's calculation method fo
 		{
 			this.x = game.blocks[x].position(this.x, this.y, this.r)[0];
 			this.y = game.blocks[x].position(this.x, this.y, this.r)[1];
+			this.moving = false;
 			returnVal = true;
 		}
 	}
 	if (returnVal === false)
 	{
-		this.y = parseInt(this.y-1.5);
+		this.y = this.y-1.5;
+		this.moving = true;
 	}
 }
 Bubble.prototype.destruct = function () // Bubble class's destruct method.
@@ -239,6 +261,43 @@ Block.prototype.redraw = function () // Block class's redraw method.
 	canvas.ctx.stroke();
 }
 Block.prototype.position = function (x, y, r) // Interface for Bubble's calculate method to find next position.
+{
+	if ((x >= this.x && x <= this.x+this.w) && (y >= this.y+this.h+r && y <= this.y+this.h+r+2))
+	{
+		return [x, y];
+	}
+	else
+	{
+		return false;
+	}
+}
+
+// FloatBlock Class
+
+function FloatBlock ()
+{
+	this.index;
+	this.x;
+	this.y;
+	this.w;
+	this.h;
+	this.weight;
+}
+FloatBlock.prototype.create = function (x, y, w, h) // Create block.
+{
+	this.x = x;
+	this.y = y;
+	this.w = w;
+	this.h = h;
+}
+FloatBlock.prototype.redraw = function () // Block class's redraw method.
+{
+	canvas.ctx.beginPath();
+	canvas.ctx.strokeStyle = "Black";
+	canvas.ctx.strokeRect(this.x, this.y, this.w, this.h);
+	canvas.ctx.stroke();
+}
+FloatBlock.prototype.position = function (x, y, r) // Interface for Bubble's calculate method to find next position.
 {
 	if ((x >= this.x && x <= this.x+this.w) && (y >= this.y+this.h+r && y <= this.y+this.h+r+2))
 	{
