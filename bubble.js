@@ -79,16 +79,12 @@ function Game ()
 {
 	this.blocks;
 	this.bubbles;
-	this.asplodeBubbles;
-	this.levers;
 }
 Game.prototype.create = function () // Load different components for the level.
 {
 	this.blocks = new Array();
 	this.bubbles = new Array();
 	this.asplodeBubbles = new Array();
-	
-	this.levers = new Array();
 	
 	this.load();
 	
@@ -105,8 +101,6 @@ Game.prototype.load = function () // Load the components of a level from a file.
 	this.blocks[0].create(200, 200, 100, 10);
 	this.blocks[1] = new Block();
 	this.blocks[1].create(50, 100, 50, 10);
-	this.levers[0] = new Lever();
-	this.levers[0].create(200, 300, 50, 5, 15);
 }
 Game.prototype.destruct = function () // Destruct the game, restarting.
 {
@@ -121,14 +115,11 @@ function Canvas () // Canvas class.
 {
 	this.ctx;
 	this.calcCount;
-	
-	this.levers;
 }
 Canvas.prototype.create = function () // Create method for the canvas (constructor).
 {
 	var canvas = document.getElementById("canvas");
 	this.ctx = canvas.getContext("2d");
-	this.levers = canvas.getContext("2d");
 	this.calcCount = 0;
 	this.redraw();
 }
@@ -139,13 +130,6 @@ Canvas.prototype.redraw = function () // Canvas class's redraw method.
 		if (game.bubbles[x])
 		{
 			game.bubbles[x].calculate();
-		}
-	}
-	for (var x in game.levers)
-	{
-		if (game.levers[x])
-		{
-			game.levers[x].calculate();
 		}
 	}
 	this.calcCount++;
@@ -172,13 +156,6 @@ Canvas.prototype.redraw = function () // Canvas class's redraw method.
 			if (game.asplodeBubbles[x])
 			{
 				game.asplodeBubbles[x].asplode();
-			}
-		}
-		for (var x in game.levers)
-		{
-			if (game.levers[x])
-			{
-				game.levers[x].redraw();
 			}
 		}
 		this.calcCount = 0; // Reset counter.
@@ -284,7 +261,7 @@ Bubble.prototype.calculate = function () // Bubble class's calculation method fo
 	}
 	this.r = Math.sqrt(Math.pow(bubbleRadius, 2)*this.weight); // Calculate the current radius.
 	var returnVal = false;
-	var params = {"x":this.x, "y":this.y, "r":this.r, "weight":this.weight, "moving":this.moving}
+	var params = {"x":this.x, "y":this.y, "r":this.r}
 	for (var x in game.blocks) // Calculate position based on any blocks.
 	{
 		if (game.blocks[x].position(this.type, params))
@@ -293,19 +270,6 @@ Bubble.prototype.calculate = function () // Bubble class's calculation method fo
 			this.y = game.blocks[x].position(this.type, params)[1];
 			this.moving = false;
 			returnVal = true;
-		}
-	}
-	if (returnVal === false)
-	{
-		for (var x in game.levers)
-		{
-			if (game.levers[x].position(this.type, params))
-			{
-				this.x = game.levers[x].position(this.type, params)[0];
-				this.y = game.levers[x].position(this.type, params)[1];
-				this.moving = false;
-				returnVal = true;
-			}
 		}
 	}
 	// Calculate position based on other game elements.
@@ -420,7 +384,6 @@ Block.prototype.redraw = function () // Block class's redraw method.
 }
 Block.prototype.position = function (type, params) // Interface for Bubble's calculate method to find next position.
 {
-	var returnVal = false;
 	if (type === "Bubble")
 	{
 		var x = params["x"];
@@ -428,10 +391,17 @@ Block.prototype.position = function (type, params) // Interface for Bubble's cal
 		var r = params["r"];
 		if ((x >= this.x && x <= this.x+this.w) && (y >= this.y+this.h+r && y <= this.y+this.h+r+2))
 		{
-			returnVal = [x, y];
+			return [x, y];
+		}
+		else
+		{
+			return false;
 		}
 	}
-	return returnVal;
+	else
+	{
+		return false;
+	}
 }
 
 // FloatBlock Class
@@ -461,107 +431,14 @@ FloatBlock.prototype.redraw = function () // Block class's redraw method.
 	canvas.ctx.strokeRect(this.x, this.y, this.w, this.h);
 	canvas.ctx.stroke();
 }
-FloatBlock.prototype.position = function (type, params) // Interface for Bubble's calculate method to find next position.
+FloatBlock.prototype.position = function (x, y, r) // Interface for Bubble's calculate method to find next position.
 {
-	var returnVal = false;
-	if (type === "Bubble")
+	if ((x >= this.x && x <= this.x+this.w) && (y >= this.y+this.h+r && y <= this.y+this.h+r+2))
 	{
-		var x = params["x"];
-		var y = params["y"];
-		var r = params["r"];
-		if ((x >= this.x && x <= this.x+this.w) && (y >= this.y+this.h+r && y <= this.y+this.h+r+2))
-		{
-			returnVal = [x, y];
-		}
+		return [x, y];
 	}
-	return returnVal;
-}
-
-// Lever Class
-
-function Lever ()
-{
-	this.type;
-	this.index;
-	this.x;
-	this.y;
-	this.w;
-	this.h;
-	this.inertia;
-	this.leftWeight;
-	this.rightWeight;
-	this.moving;
-	this.angle;
-}
-Lever.prototype.create = function (x, y, w, h, inertia) // Create lever.
-{
-	this.type = "Lever";
-	this.x = x;
-	this.y = y;
-	this.w = w;
-	this.h = h;
-	this.inertia = inertia;
-	this.leftWeight = 0;
-	this.rightWeight = 0;
-	this.moving = false;
-	this.angle = 0;
-}
-Lever.prototype.calculate = function ()
-{
-	if (Math.abs(this.leftWeight-this.rightWeight) >= this.inertia/2)
+	else
 	{
-		if (this.leftWeight-this.rightWeight > 0)
-		{
-			this.angle = 1;
-		}
-		else
-		{
-			this.angle = -1;
-		}
+		return false;
 	}
-	if (Math.abs(this.leftWeight-this.rightWeight) >= this.inertia)
-	{
-		this.angle *= 2;
-	}
-}
-Lever.prototype.redraw = function () // Lever class's redraw method.
-{
-	canvas.levers.beginPath();
-	canvas.levers.strokeStyle = "Black";
-	if (this.angle !== 0)
-	{
-		canvas.levers.rotate(this.angle*Math.PI/4);
-	}
-	canvas.levers.strokeRect(this.x-this.w/2, this.y, this.w, this.h);
-	canvas.levers.stroke();
-	canvas.levers.rotate(0);
-}
-Lever.prototype.position = function (type, params) // Interface for Bubble's calculate method to find next position.
-{
-	var returnVal = false;
-	if (type === "Bubble")
-	{
-		var x = params["x"];
-		var y = params["y"];
-		var r = params["r"];
-		var weight = params["weight"];
-		var moving = params["moving"];
-		if ((x >= this.x && x <= this.x+this.w/2) && (y >= this.y+this.h+r && y <= this.y+this.h+r+2))
-		{
-			if (moving)
-			{
-				this.rightWeight += weight;
-			}
-			returnVal = [x, y];
-		}
-		else if ((x >= this.x-this.w/2 && x <= this.x) && (y >= this.y+this.h+r && y <= this.y+this.h+r+2))
-		{
-			if (moving)
-			{
-				this.leftWeight += weight;
-			}
-			returnVal = [x, y];
-		}
-	}
-	return returnVal;
 }
