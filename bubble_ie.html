@@ -3,12 +3,11 @@
 <head>
 <title>Bubble</title>
 <script type = "text/javascript" src = "bubble.js"></script>
-<script type = "text/javascript" src = "bubble_controller.js"></script>
 <script type = "text/javascript"></script>
 <link rel = "stylesheet" type = "text/css" href = "bubble.css" />
 </head>
 
-<body id = "body" onload = "main();initController();">
+<body id = "body" onload = "main();">
 
 <div>
 <canvas id = "canvas" width = "320" height = "480">
@@ -20,9 +19,10 @@
 <div id = "musicToggle" playing = "0"><p>Music<br />Off</p></div>
 <div id = "test" style = "position:relative;float:top;top:500px;">Testing Area</div>
 
-<div style = "width:600px;position:relative;float:top;left:400px;font-size:x-small;">
+<div style = "position:relative;float:top;left:400px;">
 <form>
-<!--<input type = "text" id = "gameMode" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> gameMode<br />-->
+<!--
+<input type = "text" id = "gameMode" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> gameMode<br />
 <input type = "text" id = "autoShoot" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> autoShoot: 0 default off : 1 on<br />
 <input type = "text" id = "bubbleWeight" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> bubbleWeight: 1 default : (Size in bubble units)<br />
 <input type = "text" id = "bubbleSpeed" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> bubbleSpeed: default 1.5 : (Float speed)<br />
@@ -30,9 +30,10 @@
 <input type = "text" id = "maxBubbleWeight" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> maxBubbleWeight: 15 default : 0 infinite : (Maximum allowed bubble size before popping)<br />
 <input type = "text" id = "bubbleFrequency" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> bubbleFrequency: 150 default (Time in ms between bubble firings when holding)<br />
 <input type = "text" id = "combineBubbleMode" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> combineBubbleMode: 0 default : 1 combine calculation center is not based on weight<br />
-<!--<input type = "text" id = "msPerRender" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> msPerRender<br />-->
+<input type = "text" id = "msPerRender" size = "5" value = "" onfocus = "select(this);" onchange = "changeParam(this);" /> msPerRender<br />
 <span id = "testDisplay">Output</span><br /><br />
 <span onclick = "window.location.reload();">Click To Reload To Defaults</span>
+-->
 </form>
 </div>
 </body>

@@ -230,7 +230,7 @@ function createBubble (x, y) // Bubble creation by clicking on canvas.
 
 function Bubble ()
 {
-	this.type = arguments.callee.name;
+	this.type;
 	this.index;
 	this.isBlocked;
 	this.x;
@@ -242,6 +242,7 @@ function Bubble ()
 }
 Bubble.prototype.create = function (x, y) // Create bubble.
 {
+	this.type = "Bubble";
 	this.x = x;
 	this.y = y;
 	this.r;
@@ -359,7 +360,7 @@ Bubble.prototype.destruct = function () // Bubble class's destruct method.
 
 function Block ()
 {
-	this.type = arguments.callee.name;
+	this.type;
 	this.index;
 	this.x;
 	this.y;
@@ -368,6 +369,7 @@ function Block ()
 }
 Block.prototype.create = function (x, y, w, h) // Create block.
 {
+	this.type = "Block";
 	this.x = x;
 	this.y = y;
 	this.w = w;
@@ -406,7 +408,7 @@ Block.prototype.position = function (type, params) // Interface for Bubble's cal
 
 function FloatBlock ()
 {
-	this.type = arguments.callee.name;
+	this.type;
 	this.index;
 	this.x;
 	this.y;
@@ -416,6 +418,7 @@ function FloatBlock ()
 }
 FloatBlock.prototype.create = function (x, y, w, h) // Create block.
 {
+	this.type = "FloatBlock";
 	this.x = x;
 	this.y = y;
 	this.w = w;
