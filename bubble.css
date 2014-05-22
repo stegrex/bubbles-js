@@ -2,6 +2,10 @@ body
 {
 	font-family:Frutiger, Tahoma, Verdana, Helvetica, Arial, sans-serif;
 	font-size:small;
+	user-select:none;
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	cursor:default;
 }
 
 #canvas
